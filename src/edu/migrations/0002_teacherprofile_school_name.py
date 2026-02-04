@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='teacherprofile',
             name='school_name',
-            field=models.TextField(blank=True, null=True),
+            field=models.CharField(blank=True, db_index=True, max_length=255, null=True),
         ),
     ]

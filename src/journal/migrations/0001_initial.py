@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='Subject',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, unique=True)),
+                ('name', models.CharField(db_index=True, max_length=100, unique=True)),
                 ('is_active', models.BooleanField(default=True)),
             ],
         ),
@@ -98,8 +98,20 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='journal.subject'),
         ),
         migrations.AddIndex(
+            model_name='classsubject',
+            index=models.Index(fields=['school_class', 'is_active'], name='journal_cla_school__1c1b37_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='classsubject',
+            index=models.Index(fields=['teacher', 'is_active'], name='journal_cla_teacher_7c93c9_idx'),
+        ),
+        migrations.AddIndex(
             model_name='lesson',
             index=models.Index(fields=['class_subject', 'date'], name='journal_les_class_s_fe0fdc_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='lesson',
+            index=models.Index(fields=['date', 'class_subject'], name='journal_les_date_c_6d9c73_idx'),
         ),
         migrations.AddConstraint(
             model_name='lesson',
@@ -113,6 +125,10 @@ class Migration(migrations.Migration):
             model_name='grade',
             index=models.Index(fields=['lesson'], name='journal_gra_lesson__96ba3f_idx'),
         ),
+        migrations.AddIndex(
+            model_name='grade',
+            index=models.Index(fields=['student', 'lesson'], name='journal_gra_student_86f01e_idx'),
+        ),
         migrations.AddConstraint(
             model_name='grade',
             constraint=models.UniqueConstraint(fields=('student', 'lesson', 'grade_type'), name='uniq_grade_per_lesson_type'),
@@ -124,6 +140,10 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='attendance',
             index=models.Index(fields=['lesson'], name='journal_att_lesson__a8a978_idx'),
+        ),
+        migrations.AddIndex(
+            model_name='attendance',
+            index=models.Index(fields=['student', 'lesson'], name='journal_att_student_6f9c37_idx'),
         ),
         migrations.AddConstraint(
             model_name='attendance',

@@ -19,7 +19,7 @@ class SchoolClass(models.Model):
 
 
 class Subject(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, db_index=True)
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -33,6 +33,10 @@ class ClassSubject(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        indexes = [
+            models.Index(fields=["school_class", "is_active"]),
+            models.Index(fields=["teacher", "is_active"]),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=["school_class", "subject"],
@@ -74,6 +78,7 @@ class Lesson(models.Model):
     class Meta:
         indexes = [
             models.Index(fields=["class_subject", "date"]),
+            models.Index(fields=["date", "class_subject"]),
         ]
         constraints = [
             models.UniqueConstraint(
@@ -104,6 +109,7 @@ class Grade(models.Model):
         indexes = [
             models.Index(fields=["student"]),
             models.Index(fields=["lesson"]),
+            models.Index(fields=["student", "lesson"]),
         ]
         constraints = [
             models.UniqueConstraint(
@@ -131,6 +137,7 @@ class Attendance(models.Model):
         indexes = [
             models.Index(fields=["student"]),
             models.Index(fields=["lesson"]),
+            models.Index(fields=["student", "lesson"]),
         ]
         constraints = [
             models.UniqueConstraint(

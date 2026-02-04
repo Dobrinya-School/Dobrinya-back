@@ -7,8 +7,8 @@ class UserProfile(models.Model):
     first_name = models.CharField(max_length=20)
     last_name = models.CharField(max_length=40)
     patronymic = models.CharField(max_length=20)
-    avatar_url = models.TextField(blank=True, null=True)
-    timezone = models.TextField(blank=True, null=True)
+    avatar_url = models.CharField(max_length=500, blank=True, null=True)
+    timezone = models.CharField(max_length=64, blank=True, null=True)
 
     class Meta:
         # db_table = "edu.user_profiles"
@@ -22,7 +22,7 @@ class UserProfile(models.Model):
 
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    school_name = models.TextField(blank=True, null=True)
+    school_name = models.CharField(max_length=255, blank=True, null=True, db_index=True)
 
     class Meta:
         # db_table = "edu.student_profiles"
@@ -37,9 +37,9 @@ class StudentProfile(models.Model):
 
 class TeacherProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    subject = models.TextField(blank=True, null=True)
-    school_name = models.TextField(blank=True, null=True)
-    qualification = models.TextField(blank=True, null=True)
+    subject = models.CharField(max_length=255, blank=True, null=True)
+    school_name = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+    qualification = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
         # db_table = "edu.teacher_profiles"

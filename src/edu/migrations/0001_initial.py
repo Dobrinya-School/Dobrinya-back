@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
             name='StudentProfile',
             fields=[
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='authh.user')),
-                ('school_name', models.TextField(blank=True, null=True)),
+                ('school_name', models.CharField(blank=True, db_index=True, max_length=255, null=True)),
             ],
             options={
                 'verbose_name': 'Student Profile',
@@ -28,8 +28,8 @@ class Migration(migrations.Migration):
             name='TeacherProfile',
             fields=[
                 ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, primary_key=True, serialize=False, to='authh.user')),
-                ('subject', models.TextField(blank=True, null=True)),
-                ('qualification', models.TextField(blank=True, null=True)),
+                ('subject', models.CharField(blank=True, max_length=255, null=True)),
+                ('qualification', models.CharField(blank=True, max_length=255, null=True)),
             ],
             options={
                 'verbose_name': 'Teacher Profile',
@@ -43,8 +43,8 @@ class Migration(migrations.Migration):
                 ('first_name', models.CharField(max_length=20)),
                 ('last_name', models.CharField(max_length=40)),
                 ('patronymic', models.CharField(max_length=20)),
-                ('avatar_url', models.TextField(blank=True, null=True)),
-                ('timezone', models.TextField(blank=True, null=True)),
+                ('avatar_url', models.CharField(blank=True, max_length=500, null=True)),
+                ('timezone', models.CharField(blank=True, max_length=64, null=True)),
             ],
             options={
                 'verbose_name': 'User Profile',
