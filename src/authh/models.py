@@ -37,11 +37,11 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     class Meta:
-        db_table = "auth.users"
+        # db_table = "auth.users"
         verbose_name = "User"
         verbose_name_plural = "Users"
 
-        managed = False
+        # managed = False
 
     def __str__(self):
         return self.email

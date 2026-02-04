@@ -1,6 +1,6 @@
 from django.db import models
 
-from auth.models import User
+from authh.models import User
 
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
@@ -11,11 +11,11 @@ class UserProfile(models.Model):
     timezone = models.TextField(blank=True, null=True)
 
     class Meta:
-        db_table = "edu.user_profiles"
+        # db_table = "edu.user_profiles"
         verbose_name = "User Profile"
         verbose_name_plural = "User Profiles"
 
-        managed = False
+        # managed = False
 
     def __str__(self):
         return f"{self.last_name} {self.first_name}"
@@ -23,15 +23,13 @@ class UserProfile(models.Model):
 class StudentProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     school_name = models.TextField(blank=True, null=True)
-    grade = models.IntegerField(blank=True, null=True)
-    class_letter = models.TextField(blank=True, null=True)
 
     class Meta:
-        db_table = "edu.student_profiles"
+        # db_table = "edu.student_profiles"
         verbose_name = "Student Profile"
         verbose_name_plural = "Student Profiles"
 
-        managed = False
+        # managed = False
 
     def __str__(self):
         return f"{self.user} - "
@@ -40,14 +38,15 @@ class StudentProfile(models.Model):
 class TeacherProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     subject = models.TextField(blank=True, null=True)
+    school_name = models.TextField(blank=True, null=True)
     qualification = models.TextField(blank=True, null=True)
 
     class Meta:
-        db_table = "edu.teacher_profiles"
+        # db_table = "edu.teacher_profiles"
         verbose_name = "Teacher Profile"
         verbose_name_plural = "Teacher Profiles"
 
-        managed = False
+        # managed = False
 
     def __str__(self):
         return f"{self.user} - "

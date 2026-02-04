@@ -1,3 +1,8 @@
 from django.contrib import admin
 
-# Register your models here.
+from .models import *
+
+@admin.register(StudentProfile, TeacherProfile)
+class StudentProfileAdmin(admin.ModelAdmin):
+    list_display = ['user', 'school_name']
+    list_filter = ['school_name']
