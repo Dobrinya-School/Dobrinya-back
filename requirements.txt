@@ -1,0 +1,13 @@
+Django>=5.0
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+psycopg2-binary
+gunicorn
+pyotp
+qrcode
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+pillow
+drf-spectacular

@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  db:
+    networks:
+      - dobrinya-network
+    env_file:
+      - .env
+    image: postgres:latest
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+  backend:
+    networks:
+      - dobrinya-network
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    depends_on:
+      - db
+    volumes:
+      - ./src:/app
+      - ./src/static:/app/static
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.dev
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DB_HOST=db
+      - DB_PORT=5432
+    ports:
+      - "8000:8000"
+    entrypoint: ["/entrypoint_dev.sh"]
+volumes:
+  postgres_data:
+networks:
+  dobrinya-network:
+    external: true
