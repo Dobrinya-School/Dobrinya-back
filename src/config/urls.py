@@ -16,26 +16,26 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView
-from rest_framework.schemas import get_schema_view
-from rest_framework.renderers import JSONOpenAPIRenderer
+from rest_framework.decorators import api_view
+from django.http import HttpResponse
 
-from journal import urls as journal_urls
-from authh import urls as auth_urls
-from edu import urls as edu_urls
+from edu.urls import router
 
-schema_view = get_schema_view(
-    title="My API",
-    version="1.0.0",
-    renderer_classes=[JSONOpenAPIRenderer],
-)
+@api_view(['GET'])
+def ping(request):
+    return HttpResponse("Pong")
 
 urlpatterns = [
-    path('schema/', schema_view, name='schema'),
-    path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
-
     path('admin/', admin.site.urls),
-    path("journal/", include((journal_urls, "journal"), namespace="journal")),
-    path("auth/", include((auth_urls, "auth"), namespace="auth")),
-    path("edu/", include((edu_urls, "edu"), namespace="edu")),
+
+    path('v1/', include([
+        path("journal/", include('journal.urls')),
+        path("auth/", include('authh.urls')),
+        # path("edu/", include('edu.urls')),
+        # path("tests/", include('testing.urls')),
+
+        path("", include(router.urls)),
+
+        path("ping/", ping)
+    ]))
 ]

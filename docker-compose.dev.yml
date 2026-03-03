@@ -1,6 +1,17 @@
 version: "3.9"
 
 services:
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./minio-data:/data
   db:
     networks:
       - dobrinya-network
@@ -15,6 +26,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
+
   backend:
     networks:
       - dobrinya-network

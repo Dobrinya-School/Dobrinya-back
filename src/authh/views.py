@@ -1,6 +1,5 @@
 from django.shortcuts import get_object_or_404
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from django.contrib.auth import authenticate, login, logout
@@ -8,11 +7,12 @@ from django.core.mail import send_mail
 from django.forms.models import model_to_dict
 
 from .authentification import *
+from accounts.permissions import IsAuthorized
 from .models import *
 
 @api_view(['GET'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthorized])
 def me(request):
     user = request.user
     return Response({"status": "ok", "id": str(user.id)})
@@ -53,7 +53,7 @@ def verify_totp_view(request):
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthorized])
 def totp_setup_start(request):
     user = request.user
 
@@ -75,7 +75,7 @@ def totp_setup_start(request):
 
 @api_view(["POST"])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthorized])
 def totp_setup_confirm(request):
     code = request.data.get("code")
     user = request.user
@@ -204,7 +204,7 @@ def login_view(request):
 
 @api_view(['POST'])
 @authentication_classes([CsrfExemptSessionAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthorized])
 def logout_view(request):
     logout(request)
     return Response({"status": "ok", "detail": "Logged out"}, status=status.HTTP_200_OK)

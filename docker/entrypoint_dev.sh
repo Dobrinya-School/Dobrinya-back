@@ -9,10 +9,8 @@ done
 
 echo "Database is ready"
 
-# python manage.py collectstatic --noinput
+python manage.py collectstatic --noinput
 python manage.py makemigrations
 python manage.py migrate
-# python manage.py migrate authh
-# python manage.py migrate edu
 # python manage.py migrate journal
 exec python manage.py runserver 0.0.0.0:8000

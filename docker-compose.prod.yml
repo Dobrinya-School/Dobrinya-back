@@ -1,6 +1,18 @@
 version: "3.9"
 
 services:
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    volumes:
+      - ./minio-data:/data
+      - ./certs/minio:/root/.minio/certs
   db:
     networks:
       - dobrinya-network
@@ -30,6 +42,8 @@ services:
     volumes:
       - ./src:/app
       - ./src/static:/app/static
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings.prod
       - POSTGRES_DB=${POSTGRES_DB}

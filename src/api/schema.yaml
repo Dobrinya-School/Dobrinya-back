@@ -1,0 +1,1695 @@
+openapi: 3.0.3
+info:
+  title: 'Dobrinya API'
+  version: 1.0.0
+  contact:
+    name: Dobrinya API Support
+    email: vladvarnovo@gmail.com
+servers:
+  - url: http://127.0.0.1:5173/api
+    description: Server description
+paths:
+  /auth/me:
+    get:
+      tags:
+        - Auth
+      summary: Me
+      description: Присылает id авторизованного пользователя
+      operationId: me
+      responses:
+        '200':
+          description: Успешная обработка
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  id:
+                    type: string
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login/:
+    post:
+      tags: 
+        - Auth
+      summary: Login
+      description: Выполняет логин пользователя
+      operationId: authLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secret
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/OkResponse'
+                  - $ref: '#/components/schemas/LoginAdditionalVerification'
+                  - $ref: '#/components/schemas/LoginEmailVerification'
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Неверный логин или пароль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Пользователь заблокирован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Пользователь не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+  /auth/register/:
+    post:
+      tags: 
+        - Auth
+      summary: Register
+      description: Выполняет регистрацию пользователя
+      operationId: authRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                password:
+                  type: string
+                  format: password
+                  example: secret
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [email_verification_required, error]
+                  detail:
+                    type: string
+                  login_session:
+                    type: string
+                  variants:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /auth/logout/:
+    post:
+      tags: 
+        - Auth
+      summary: Logout
+      description: Выполняет выход пользователя из аккаунта
+      operationId: authLogout
+      responses:
+        '200':
+          description: Успешный выход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+  /auth/verify/:
+    post:
+      tags: 
+        - Auth
+      summary: Verify email
+      description: Выполняет подтверждение почты пользователя
+      operationId: authVerify
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: codeeeee
+              required:
+                - code
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /auth/verify-totp/:
+    post:
+      tags: 
+        - Auth
+      summary: Verify TOTP
+      description: Выполняет 2FA подтверждение с помощью TOTP
+      operationId: authTotp
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login_session:
+                  type: string
+                  example: ei20i23023
+                code:
+                  type: string
+                  example: 111111
+              required:
+                - login_session
+                - code
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/totp-setup/:
+    post:
+      tags: 
+        - Auth
+      summary: Setup TOTP
+      description: Выполняет регистрацию в TOTP приложении
+      operationId: totpSetup
+      responses:
+        '200':
+          description: Успешная регистрация
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  detail:
+                    type: string
+                  qr:
+                    type: string
+        '400':
+          description: TOTP уже включен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/totp-enable/:
+    post:
+      tags: 
+        - Auth
+      summary: Enable TOTP
+      description: Выполняет включение 2FA подтверждения с помощью TOTP
+      operationId: totpEnable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: 111111
+              required:
+                - code
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/telegram-setup/:
+    post:
+      tags:
+        - Auth
+      summary: Setup Telegram
+      description: Выполняет регистрацию входа через Telegram
+      operationId: telegramSetup
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  detail:
+                    type: string
+                  url:
+                    type: string
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/telegram-enable/:
+    post:
+      tags:
+        - Auth
+      summary: Setup Telegram
+      description: Выполняет включение 2FA подтверждения с помощью Telegram
+      operationId: telegramEnable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  example: 111111
+              required:
+                - code
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  
+  /auth/verify-telegram/:
+    post:
+      tags: 
+        - Auth
+      summary: Verify Telegram
+      description: Выполняет 2FA подтверждение с помощью Telegram
+      operationId: authTelegram
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                login_session:
+                  type: string
+                  example: ei20i23023
+                code:
+                  type: string
+                  example: 111111
+              required:
+                - login_session
+                - code
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+        '400':
+          description: Неправильные данные запроса
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+
+
+  /edu/profile/:
+    get:
+      tags: 
+        - Edu
+      summary: Profile
+      description: Получает данные о профиле авторизованного пользователя
+      operationId: profile
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  profile:
+                    type: object
+                    properties:
+                      user:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                        format: email
+                      first_name:
+                        type: string
+                      last_name:
+                        type: string
+                      patronymic:
+                        type: string
+                      avatar_url:
+                        type: string
+                      timezone:
+                        type: string
+                        example: America/New_York
+        '404':
+          description: Профиль пользователя не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /edu/public/profile/{user_id}/:
+    get:
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags: 
+        - Edu
+      summary: User profile
+      description: Получает публичные данные о профиле пользователя
+      operationId: userProfile
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  profile:
+                    $ref: '#/components/schemas/PublicUserData'
+        '404':
+          description: Профиль пользователя не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /edu/public/role/{user_id}/:
+    get:
+      parameters:
+        - in: path
+          name: user_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags: 
+        - Edu
+      summary: User role
+      description: Получает публичные данные о профиле ученика/учителя
+      operationId: roleProfile
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  profile:
+                    oneOf:
+                      - $ref: '#/components/schemas/StudentData'
+                      - $ref: '#/components/schemas/TeacherData'
+        '404':
+          description: Профиль пользователя не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /edu/public/class/{class_id}/:
+    get:
+      parameters:
+        - in: path
+          name: class_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags: 
+        - Edu
+      summary: Class info
+      description: Получает публичные данные о классе (для учителей)
+      operationId: classInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  profile:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: 1-А
+                      year:
+                        type: integer
+                        example: 2026
+
+        '403':
+          description: Вы не учитель
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Профиль класса не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /edu/public/class/{class_id}/students/:
+    get:
+      parameters:
+        - in: path
+          name: class_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags: 
+        - Edu
+      summary: Class students list
+      description: Получает все публичные данные о студентах класса (для учителей)
+      operationId: classStudentsInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  students:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/StudentUserData'
+
+        '403':
+          description: Вы не учитель
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Профиль класса не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /edu/course/{course_id}/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags: 
+        - Edu
+      summary: Course info
+      description: Получает данные о предмете/курсе
+      operationId: classInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  profile:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: Математика
+                      teacher:
+                        $ref: '#/components/schemas/TeacherUserData'
+
+        '404':
+          description: id предмета не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/course/{course_id}/tasks/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Tasks info
+      description: Получает данные о тестовых заданиях предмета/курса
+      operationId: tasksInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      properties:                        
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          example: Задание 1
+                        description:
+                          type: string
+
+
+        '404':
+          description: id предмета не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/course/{course_id}/tasks/create:
+    post:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Tasks info
+      description: Создает о тестовые задания предмета/курса
+      operationId: tasksInfo
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:                
+                name:
+                  type: string
+                  example: Задание 1
+                description:
+                  type: string
+                lesson_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  tasks:
+                    type: array
+                    items:
+                      type: object
+                      properties:                        
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          example: Задание 1
+                        description:
+                          type: string
+
+
+        '404':
+          description: id предмета не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/course/{course_id}/task/{task_id}/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: task_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Task info
+      description: Получает данные о тестовом задании предмета/курса
+      operationId: taskInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                      
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    example: Задание 1
+                  description:
+                    type: string
+                  questions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionData'
+
+
+        '404':
+          description: id предмета или задания не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/course/{course_id}/task/{task_id}/confirm/:
+    post:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: task_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Task confirm
+      description: Отправляет ответ на вопрос теста предмета/курса
+      operationId: taskConfirm
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                      
+                  correct_answers:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+
+        '404':
+          description: id вопроса или ответа не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/course/{course_id}/task/{task_id}/results/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: task_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Task results
+      description: Получает результаты теста по теме предмета/курса
+      operationId: taskResults
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                      
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    example: Задание 1
+                  description:
+                    type: string
+                  questions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuestionData'
+                  user_choices:
+                    type: array
+                    items:
+                      type: string
+                      format: uuid
+                  statistic:
+                    type: object
+                    properties:
+                      all:
+                        type: integer
+                      correct_answers:
+                        type: integer
+
+        '404':
+          description: id вопроса или ответа не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/course/{course_id}/lections/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Lections info
+      description: Получает данные о лекциях/темах/конспектах предмета/курса
+      operationId: lectionsInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  lections:
+                    type: array
+                    items:
+                      type: object
+                      properties:                        
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                          example: Лекция 1
+
+        '404':
+          description: id предмета не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/course/{course_id}/lections/{lection_id}:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: lection_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Task info
+      description: Получает данные о лекции предмета/курса
+      operationId: lectionInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                      
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    example: Лекция 1
+                  questions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LectionData'
+
+
+        '404':
+          description: id предмета или лекции не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /journal/{class_id}/cources/:
+    get:
+      parameters:
+        - in: path
+          name: class_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Journal
+      summary: Class cources info
+      description: Получает данные о предметах/курсах класса для эл журнала
+      operationId: classCourcesInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  cources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: Математика
+                        teacher:
+                          $ref: '#/components/schemas/TeacherUserData'
+
+        '404':
+          description: id класса не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /journal/{class_id}/{course_id}/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: class_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Journal
+      summary: Course info
+      description: Получает данные об уроках предмета/курса
+      operationId: courseInfo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                period:
+                  type: string
+              required:
+                - date
+                - period
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                   
+                  lessons:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LessonData'
+                      
+
+
+        '404':
+          description: id предмета или класса не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /journal/{class_id}/{course_id}/{lesson_id}/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: lesson_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Journal
+      summary: Lesson info
+      description: Получает данные о лекции предмета/курса
+      operationId: lessonInfo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+              required:
+                - date
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                      
+                  lesson:
+                    allOf:
+                      - $ref: '#/components/schemas/LessonData'
+                      - $ref: '#/components/schemas/LessonGradesData'
+
+
+        '404':
+          description: id предмета или лекции не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /journal/{class_id}/{course_id}/update/:
+    post:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: class_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Journal
+      summary: Update grades
+      description: Отправляет данные с изменениями оценок
+      operationId: updateGrades
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  format: date
+                lesson_id:
+                  type: string
+                  format: uuid
+                grade:
+                  type: string
+                student_id:
+                  type: string
+                  format: uuid
+              required:
+                - date
+                - lesson_id
+                - student_id
+                - grade
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkResponse'
+
+        '404':
+          description: id предмета или лекции или студента или чего-то еще не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  # /journal/{class_id}/{course_id}/{lesson_id}/update/:
+  #   get:
+  #     parameters:
+  #       - in: path
+  #         name: course_id
+  #         schema:
+  #           type: string
+  #           format: uuid
+  #         required: true
+  #       - in: path
+  #         name: lection_id
+  #         schema:
+  #           type: string
+  #           format: uuid
+  #         required: true
+  #     tags:
+  #       - Edu
+  #     summary: Task info
+  #     description: Получает данные о лекции предмета/курса
+  #     operationId: lectionInfo
+  #     responses:
+  #       '200':
+  #         description: Успешное подтверждение
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 status:
+  #                   type: string
+  #                   enum: [ok]                      
+  #                 id:
+  #                   type: string
+  #                   format: uuid
+  #                 name:
+  #                   type: string
+  #                   example: Лекция 1
+  #                 questions:
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/LectionData'
+
+
+  #       '404':
+  #         description: id предмета или лекции не найден
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorResponse'
+  #       '401':
+  #         description: Не авторизован
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/ErrorResponse'
+
+  /edu/upload/{course_id}/{lesson_id}/homework/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: lection_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Task info
+      description: Получает данные о лекции предмета/курса
+      operationId: lectionInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                      
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    example: Лекция 1
+                  questions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LectionData'
+
+
+        '404':
+          description: id предмета или лекции не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /edu/upload/{course_id}/{lesson_id}/lection/:
+    get:
+      parameters:
+        - in: path
+          name: course_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+        - in: path
+          name: lection_id
+          schema:
+            type: string
+            format: uuid
+          required: true
+      tags:
+        - Edu
+      summary: Task info
+      description: Получает данные о лекции предмета/курса
+      operationId: lectionInfo
+      responses:
+        '200':
+          description: Успешное подтверждение
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]                      
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                    example: Лекция 1
+                  questions:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LectionData'
+
+
+        '404':
+          description: id предмета или лекции не найден
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Не авторизован
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    PublicUserData:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uuid
+        first_name:
+          type: string
+          example: Иван
+        last_name:
+          type: string
+          example: Иванов
+        patronymic:
+          type: string
+          example: Иванович
+        avatar_url:
+          type: string
+        timezone:
+          type: string
+          example: America/New_York
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [error]
+        detail:
+          type: string
+    OkResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        detail:
+          type: string
+
+
+    LoginEmailVerification:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [email_verification_required]
+        detail:
+          type: string
+    LoginAdditionalVerification:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [additional_verification_required]
+        detail:
+          type: string
+        login_session:
+          type: string
+        variants:
+          type: array
+          items:
+            type: string
+
+
+    StudentData:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uuid
+        school_name:
+          type: string
+          example: "Школа №1"
+        school_class:
+          type: string
+          example: "1-А"
+    TeacherData:
+      type: object
+      properties:
+        user:
+          type: string
+          format: uuid
+        school_name:
+          type: string
+          example: "Школа №1"
+        qualifications:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+        subjects:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+    StudentUserData:
+      allOf:
+        - $ref: '#/components/schemas/PublicUserData'
+        - $ref: '#/components/schemas/StudentData'
+    TeacherUserData:
+      allOf:
+        - $ref: '#/components/schemas/PublicUserData'
+        - $ref: '#/components/schemas/TeacherData'
+
+    TaskData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Задание 1
+        questions:
+          type: array
+          items:
+            type: string
+            format: uuid
+    QuestionData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: Вопрос 1
+        answers:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              text:
+                type: string
+                example: Ответ 1
+              is_correct:
+                type: boolean
+    LectionData:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        course:
+          type: string
+        name:
+          type: string
+        text:
+          type: string
+        resources:
+          type: array
+          items:
+            type: object
+            properties:
+              url:
+                type: string
+              alt:
+                type: string
+
+    LessonData:
+      type: object
+      properties:
+        course:
+          type: object
+          properties:
+            name:
+              type: string
+              example: Математика
+            teacher:
+              $ref: '#/components/schemas/TeacherUserData'
+        date:
+          type: string
+          format: date
+        topic:
+          type: string
+        homework:
+          type: object
+          properties:
+            text:
+              type: string
+            resources:
+              type: array
+              items:
+                type: object
+                properties:
+                  url:
+                    type: string
+                  alt:
+                    type: string
+    LessonGradesData:
+      type: object
+      properties:
+        grades:
+          type: array
+          items:
+            type: object
+            properties:
+              student:
+                $ref: '#/components/schemas/StudentUserData'
+              grade:
+                type: string
+              grade_type:
+                type: string
+                enum: [lesson, exam, homework]
+              comment:
+                type: string
+
